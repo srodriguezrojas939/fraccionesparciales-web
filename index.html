@@ -96,17 +96,16 @@
             background: #fff;
         }
 
-        /* Fila ajustada para igualar alturas */
         .row {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
-            align-items: end; /* Alinea los elementos al final del contenedor (fondo) */
+            align-items: end; 
         }
 
         .btn-calc {
             width: 100%;
-            height: 54px; /* Altura fija para coincidir con el input */
+            height: 54px; 
             background: black;
             color: white;
             border: none;
@@ -115,7 +114,7 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
-            margin-bottom: 20px; /* Misma separación que el input */
+            margin-bottom: 20px; 
         }
 
         .btn-calc:hover {
@@ -123,32 +122,22 @@
             transform: translateY(-2px);
         }
 
-        #caso-detectado {
-            text-align: center;
-            font-size: 13px;
-            font-weight: 600;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: -15px;
-            margin-top: 10px;
-            min-height: 18px;
-        }
-
         #resultado {
-            margin-top: 30px;
+            margin-top: 10px;
             background: white;
             padding: 30px 20px;
             border-radius: 25px;
             min-height: 100px;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
             overflow-x: auto;
             border: 1px solid #eee;
         }
+
+        #resultado::-webkit-scrollbar { height: 4px; }
+        #resultado::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
 
         @media (max-width: 500px) {
             .header h1 { font-size: 26px; }
@@ -179,7 +168,6 @@
         </div>
     </div>
 
-    <div id="caso-detectado"></div>
     <div id="resultado">Esperando expresión...</div>
 </div>
 
@@ -191,13 +179,10 @@
         return t;
     }
 
-    }
-
     function resolver() {
         const inputExpr = document.getElementById('expr').value.trim();
         const inputVar = document.getElementById('var').value.trim() || 'x';
         const resDiv = document.getElementById('resultado');
-        const casoDiv = document.getElementById('caso-detectado');
 
         if (!inputExpr) {
             resDiv.innerHTML = "Ingresa una función.";
@@ -207,25 +192,25 @@
         try {
             const f = normalizar(inputExpr);
             
-            // Detectar tipo de caso
-            casoDiv.innerText = detectarCaso(f, inputVar);
-
-            // Resolver
+            // Resolver mediante expansión de fracciones parciales
             const sol = nerdamer(`partfrac(${f}, ${inputVar})`).evaluate();
             
             const originalTeX = nerdamer(f).toTeX();
             const resultadoTeX = sol.toTeX();
             
             resDiv.innerHTML = `$$ ${originalTeX} = ${resultadoTeX} $$`;
+            
             MathJax.typesetPromise([resDiv]);
 
         } catch (e) {
-            casoDiv.innerText = "";
-            resDiv.innerHTML = `<span style="color:red; font-size:14px;">Error de sintaxis. Revisa los paréntesis.</span>`;
+            resDiv.innerHTML = `<span style="color:red; font-size:14px;">Error de sintaxis. Revisa los paréntesis y que la expresión sea válida.</span>`;
+            console.error(e);
         }
     }
 
-    document.getElementById('expr').addEventListener('keypress', (e) => { if (e.key === 'Enter') resolver(); });
+    document.getElementById('expr').addEventListener('keypress', (e) => { 
+        if (e.key === 'Enter') resolver(); 
+    });
 </script>
 
 </body>
