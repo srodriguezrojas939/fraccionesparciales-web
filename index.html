@@ -67,7 +67,7 @@
         .header p {
             font-family: 'Playfair Display', serif;
             font-size: 18px;
-            color: #555;
+            color: #333;
             margin-top: 5px;
         }
 
@@ -96,29 +96,43 @@
             background: #fff;
         }
 
+        /* Fila ajustada para igualar alturas */
         .row {
             display: grid;
-            grid-template-columns: 2fr 1fr;
+            grid-template-columns: 1fr 1fr;
             gap: 15px;
+            align-items: end; /* Alinea los elementos al final del contenedor (fondo) */
         }
 
         .btn-calc {
             width: 100%;
+            height: 54px; /* Altura fija para coincidir con el input */
             background: black;
             color: white;
             border: none;
-            padding: 16px;
             border-radius: 35px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, background 0.3s;
-            margin-top: 10px;
+            transition: all 0.3s;
+            margin-bottom: 20px; /* Misma separación que el input */
         }
 
         .btn-calc:hover {
             background: #333;
             transform: translateY(-2px);
+        }
+
+        #caso-detectado {
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: -15px;
+            margin-top: 10px;
+            min-height: 18px;
         }
 
         #resultado {
@@ -128,21 +142,19 @@
             border-radius: 25px;
             min-height: 100px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
-            overflow-x: auto; /* Scroll para fórmulas largas en móvil */
+            overflow-x: auto;
             border: 1px solid #eee;
         }
-
-        /* Estilo para el scroll lateral */
-        #resultado::-webkit-scrollbar { height: 4px; }
-        #resultado::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
 
         @media (max-width: 500px) {
             .header h1 { font-size: 26px; }
             .container { padding: 30px 20px; border-radius: 30px; }
             .row { grid-template-columns: 1fr; gap: 0; }
+            .btn-calc { height: 50px; }
         }
     </style>
 </head>
@@ -151,69 +163,80 @@
 <div class="container fade-in">
     <div class="header">
         <h1>Fracciones Parciales</h1>
-        <p>Simplificación Algebraica</p>
+        <p><b>√(Raiz) Cuadrada²</b></p>
     </div>
 
     <label>Expresión racional</label>
-    <input id="expr" placeholder="Ej: (s+1)/(s^2 - 4)" type="text">
+    <input id="expr" placeholder="Ej: (2x+3)/(x^2 - 1)" type="text">
 
     <div class="row">
         <div>
             <label>Variable principal</label>
-            <input id="var" value="s" type="text" style="text-align: center;">
+            <input id="var" value="x" type="text" style="text-align: center;">
         </div>
-        <div style="display: flex; align-items: flex-end;">
+        <div>
             <button onclick="resolver()" class="btn-calc">Calcular</button>
         </div>
     </div>
 
-    <div id="resultado">Introduce una expresión para descomponer</div>
+    <div id="caso-detectado"></div>
+    <div id="resultado">Esperando expresión...</div>
 </div>
 
 <script>
     function normalizar(texto) {
         if (!texto) return "";
         let t = texto.toLowerCase().replace(/\s+/g, '');
-        // Insertar asteriscos faltantes (2s -> 2*s)
         t = t.replace(/(\d)([a-z])/g, '$1*$2');
         return t;
     }
 
+    function detectarCaso(expr, v) {
+        try {
+            let den = nerdamer(expr).denominator().text();
+            let factors = nerdamer(`factors(${den})`).text();
+            
+            if (factors.includes('^')) return "Caso: Factores Lineales Repetidos";
+            if (den.includes(`${v}^2`) && !factors.includes(')(') && factors.includes(`${v}^2`)) return "Caso: Factor Cuadrático Irreducible";
+            if (factors.includes(')(') || factors.includes('*')) return "Caso: Factores Lineales Distintos";
+            
+            return "Caso: Simple / Lineal";
+        } catch(e) { return ""; }
+    }
+
     function resolver() {
         const inputExpr = document.getElementById('expr').value.trim();
-        const inputVar = document.getElementById('var').value.trim() || 's';
+        const inputVar = document.getElementById('var').value.trim() || 'x';
         const resDiv = document.getElementById('resultado');
+        const casoDiv = document.getElementById('caso-detectado');
 
         if (!inputExpr) {
-            resDiv.innerHTML = "Por favor, ingresa una función.";
+            resDiv.innerHTML = "Ingresa una función.";
             return;
         }
 
         try {
             const f = normalizar(inputExpr);
             
-            // Ejecutar Fracciones Parciales con Nerdamer
+            // Detectar tipo de caso
+            casoDiv.innerText = detectarCaso(f, inputVar);
+
+            // Resolver
             const sol = nerdamer(`partfrac(${f}, ${inputVar})`).evaluate();
             
-            // Generar LaTeX
             const originalTeX = nerdamer(f).toTeX();
             const resultadoTeX = sol.toTeX();
             
             resDiv.innerHTML = `$$ ${originalTeX} = ${resultadoTeX} $$`;
-            
-            // Renderizar con MathJax
             MathJax.typesetPromise([resDiv]);
 
         } catch (e) {
-            resDiv.innerHTML = `<span style="color: #d9534f; font-size: 14px;">Error: Verifica que la expresión sea válida y contenga la variable indicada.</span>`;
-            console.error(e);
+            casoDiv.innerText = "";
+            resDiv.innerHTML = `<span style="color:red; font-size:14px;">Error de sintaxis. Revisa los paréntesis.</span>`;
         }
     }
 
-    // Permitir calcular al presionar Enter
-    document.getElementById('expr').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') resolver();
-    });
+    document.getElementById('expr').addEventListener('keypress', (e) => { if (e.key === 'Enter') resolver(); });
 </script>
 
 </body>
