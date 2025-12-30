@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Fracciones Parciales</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/nerdamer.core.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Algebra.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Calculus.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Extra.js"></script>
+    
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap');
+
+        body {
+            background: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 15px;
+            font-family: 'Open Sans', sans-serif;
+        }
+
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 0.8s ease forwards;
+        }
+
+        @keyframes fadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: #F2F2F2;
+            padding: 40px 25px;
+            border-radius: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.04);
+            box-sizing: border-box;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            margin: 0;
+            color: #000;
+        }
+
+        .header p {
+            font-family: 'Playfair Display', serif;
+            font-size: 18px;
+            color: #555;
+            margin-top: 5px;
+        }
+
+        label {
+            display: block;
+            margin: 0 0 8px 15px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 30px;
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #000;
+            background: #fff;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 15px;
+        }
+
+        .btn-calc {
+            width: 100%;
+            background: black;
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 35px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-calc:hover {
+            background: #333;
+            transform: translateY(-2px);
+        }
+
+        #resultado {
+            margin-top: 30px;
+            background: white;
+            padding: 30px 20px;
+            border-radius: 25px;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            overflow-x: auto; /* Scroll para fórmulas largas en móvil */
+            border: 1px solid #eee;
+        }
+
+        /* Estilo para el scroll lateral */
+        #resultado::-webkit-scrollbar { height: 4px; }
+        #resultado::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+
+        @media (max-width: 500px) {
+            .header h1 { font-size: 26px; }
+            .container { padding: 30px 20px; border-radius: 30px; }
+            .row { grid-template-columns: 1fr; gap: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container fade-in">
+    <div class="header">
+        <h1>Fracciones Parciales</h1>
+        <p>Simplificación Algebraica</p>
+    </div>
+
+    <label>Expresión racional</label>
+    <input id="expr" placeholder="Ej: (s+1)/(s^2 - 4)" type="text">
+
+    <div class="row">
+        <div>
+            <label>Variable principal</label>
+            <input id="var" value="s" type="text" style="text-align: center;">
+        </div>
+        <div style="display: flex; align-items: flex-end;">
+            <button onclick="resolver()" class="btn-calc">Calcular</button>
+        </div>
+    </div>
+
+    <div id="resultado">Introduce una expresión para descomponer</div>
+</div>
+
+<script>
+    function normalizar(texto) {
+        if (!texto) return "";
+        let t = texto.toLowerCase().replace(/\s+/g, '');
+        // Insertar asteriscos faltantes (2s -> 2*s)
+        t = t.replace(/(\d)([a-z])/g, '$1*$2');
+        return t;
+    }
+
+    function resolver() {
+        const inputExpr = document.getElementById('expr').value.trim();
+        const inputVar = document.getElementById('var').value.trim() || 's';
+        const resDiv = document.getElementById('resultado');
+
+        if (!inputExpr) {
+            resDiv.innerHTML = "Por favor, ingresa una función.";
+            return;
+        }
+
+        try {
+            const f = normalizar(inputExpr);
+            
+            // Ejecutar Fracciones Parciales con Nerdamer
+            const sol = nerdamer(`partfrac(${f}, ${inputVar})`).evaluate();
+            
+            // Generar LaTeX
+            const originalTeX = nerdamer(f).toTeX();
+            const resultadoTeX = sol.toTeX();
+            
+            resDiv.innerHTML = `$$ ${originalTeX} = ${resultadoTeX} $$`;
+            
+            // Renderizar con MathJax
+            MathJax.typesetPromise([resDiv]);
+
+        } catch (e) {
+            resDiv.innerHTML = `<span style="color: #d9534f; font-size: 14px;">Error: Verifica que la expresión sea válida y contenga la variable indicada.</span>`;
+            console.error(e);
+        }
+    }
+
+    // Permitir calcular al presionar Enter
+    document.getElementById('expr').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') resolver();
+    });
+</script>
+
+</body>
+</html>
