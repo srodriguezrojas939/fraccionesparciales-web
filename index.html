@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Fracciones Parciales</title>
+    <title>Calculadora de fracciones parciales</title>
 
     <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/nerdamer.core.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Algebra.js"></script>
@@ -12,7 +12,7 @@
     
     <script>
         window.MathJax = {
-            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] }
+            tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']] }
         };
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
@@ -32,18 +32,8 @@
             font-family: 'Open Sans', sans-serif;
         }
 
-        .fade-in {
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeUp 0.8s ease forwards;
-        }
-
-        @keyframes fadeUp {
-            to { opacity: 1; transform: translateY(0); }
-        }
-
         .container {
-            max-width: 600px;
+            max-width: 550px;
             width: 100%;
             background: #F2F2F2;
             padding: 40px 25px;
@@ -52,23 +42,22 @@
             box-sizing: border-box;
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { font-family: 'Playfair Display', serif; font-size: 32px; margin: 0; }
+        .header p { font-family: 'Playfair Display', serif; font-size: 18px; margin: 5px 0; font-weight: 600; }
 
-        .header h1 {
-            font-family: 'Playfair Display', serif;
-            font-size: 32px;
-            margin: 0;
-            color: #000;
-        }
-
-        .header p {
-            font-family: 'Playfair Display', serif;
-            font-size: 18px;
-            color: #333;
-            margin-top: 5px;
+        /* Visor en tiempo real */
+        #preview-container {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #eee;
+            margin-bottom: 20px;
+            overflow-x: auto;
         }
 
         label {
@@ -76,7 +65,7 @@
             margin: 0 0 8px 15px;
             font-size: 14px;
             font-weight: 600;
-            color: #333;
+            color: #444;
         }
 
         input {
@@ -87,14 +76,10 @@
             border-radius: 30px;
             font-size: 16px;
             box-sizing: border-box;
+            outline: none;
             transition: all 0.3s ease;
         }
-
-        input:focus {
-            outline: none;
-            border-color: #000;
-            background: #fff;
-        }
+        input:focus { border-color: #000; background: #fff; }
 
         .row {
             display: grid;
@@ -111,19 +96,16 @@
             border: none;
             border-radius: 35px;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.3s;
             margin-bottom: 20px; 
         }
+        .btn-calc:hover { background: #333; transform: translateY(-2px); }
 
-        .btn-calc:hover {
-            background: #333;
-            transform: translateY(-2px);
-        }
-
+        /* Resultado con separación de 45px */
         #resultado {
-            margin-top: 10px;
+            margin-top: 45px;
             background: white;
             padding: 30px 20px;
             border-radius: 25px;
@@ -136,32 +118,30 @@
             border: 1px solid #eee;
         }
 
-        #resultado::-webkit-scrollbar { height: 4px; }
-        #resultado::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
-
         @media (max-width: 500px) {
-            .header h1 { font-size: 26px; }
-            .container { padding: 30px 20px; border-radius: 30px; }
             .row { grid-template-columns: 1fr; gap: 0; }
-            .btn-calc { height: 50px; }
         }
     </style>
 </head>
 <body>
 
-<div class="container fade-in">
+<div class="container">
     <div class="header">
-        <h1>Fracciones Parciales</h1>
-        <p><b>√(Raiz) Cuadrada²</b></p>
+        <h1>Fracciones parciales</h1>
+        <p>√(Raíz) Cuadrada²</p>
+    </div>
+
+    <div id="preview-container">
+        <div id="visor">$$ \dots $$</div>
     </div>
 
     <label>Expresión racional</label>
-    <input id="expr" placeholder="Ej: (2x+3)/(x^2 - 1)" type="text">
+    <input id="expr" placeholder="Ej: (2x+3)/(x^2 - 1)" type="text" oninput="actualizarVisor()">
 
     <div class="row">
         <div>
             <label>Variable principal</label>
-            <input id="var" value="x" type="text" style="text-align: center;">
+            <input id="var" value="x" type="text" style="text-align: center;" oninput="actualizarVisor()">
         </div>
         <div>
             <button onclick="resolver()" class="btn-calc">Calcular</button>
@@ -172,6 +152,27 @@
 </div>
 
 <script>
+    // Función para el Visor en tiempo real
+    function actualizarVisor() {
+        const input = document.getElementById('expr').value.trim();
+        const visor = document.getElementById('visor');
+        
+        if (!input) {
+            visor.innerHTML = "$$ \\dots $$";
+            return;
+        }
+
+        try {
+            // Generamos el LaTeX de lo que el usuario escribe
+            let tex = nerdamer(input).toTeX();
+            visor.innerHTML = `$$ ${tex} $$`;
+            // Le pedimos a MathJax que lo renderice
+            MathJax.typesetPromise([visor]);
+        } catch (e) {
+            // Mientras el usuario escribe cosas incompletas, no hacemos nada
+        }
+    }
+
     function normalizar(texto) {
         if (!texto) return "";
         let t = texto.toLowerCase().replace(/\s+/g, '');
@@ -192,22 +193,21 @@
         try {
             const f = normalizar(inputExpr);
             
-            // Resolver mediante expansión de fracciones parciales
+            // Cálculo local con Nerdamer
             const sol = nerdamer(`partfrac(${f}, ${inputVar})`).evaluate();
             
             const originalTeX = nerdamer(f).toTeX();
             const resultadoTeX = sol.toTeX();
             
             resDiv.innerHTML = `$$ ${originalTeX} = ${resultadoTeX} $$`;
-            
             MathJax.typesetPromise([resDiv]);
 
         } catch (e) {
-            resDiv.innerHTML = `<span style="color:red; font-size:14px;">Error de sintaxis. Revisa los paréntesis y que la expresión sea válida.</span>`;
-            console.error(e);
+            resDiv.innerHTML = `<span style="color:red; font-size:14px;">Error de sintaxis o expresión no factorizable.</span>`;
         }
     }
 
+    // Enter para calcular
     document.getElementById('expr').addEventListener('keypress', (e) => { 
         if (e.key === 'Enter') resolver(); 
     });
