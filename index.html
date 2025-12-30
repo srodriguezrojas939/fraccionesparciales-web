@@ -191,17 +191,6 @@
         return t;
     }
 
-    function detectarCaso(expr, v) {
-        try {
-            let den = nerdamer(expr).denominator().text();
-            let factors = nerdamer(`factors(${den})`).text();
-            
-            if (factors.includes('^')) return "Caso: Factores Lineales Repetidos";
-            if (den.includes(`${v}^2`) && !factors.includes(')(') && factors.includes(`${v}^2`)) return "Caso: Factor Cuadrático Irreducible";
-            if (factors.includes(')(') || factors.includes('*')) return "Caso: Factores Lineales Distintos";
-            
-            return "Caso: Simple / Lineal";
-        } catch(e) { return ""; }
     }
 
     function resolver() {
