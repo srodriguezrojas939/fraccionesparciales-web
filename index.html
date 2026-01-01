@@ -13,18 +13,26 @@
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Open+Sans:wght@400;600&display=swap');
 
         body { background: white; display: flex; justify-content: center; padding: 20px; font-family: 'Open Sans', sans-serif; }
         
         .calculadora {
             background: #F2F2F2; padding: 35px 25px; border-radius: 40px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.05); width: 100%; max-width: 800px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.05); width: 100%; max-width: 850px;
         }
 
         .header-section { text-align: center; margin-bottom: 25px; }
-        .header-section h1 { font-family: 'Playfair Display', serif; font-size: 32px; margin: 0; }
+        .header-section h1 { font-family: 'Playfair Display', serif; font-size: 38px; margin: 0; }
+        
+        /* Subtítulo solicitado */
+        .main-subtitle {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 18px;
+            color: #666;
+            margin-top: 5px;
+        }
 
         #preview-container, #resultado {
             background: white; padding: 25px; border-radius: 20px; 
@@ -33,14 +41,15 @@
             text-align: center;
         }
 
-        #resultado { margin-top: 45px; color: #333; }
+        #resultado { margin-top: 45px; color: #333; font-size: 20px; }
 
         label { display: block; font-size: 14px; color: #444; margin: 18px 0 6px 15px; font-weight: 600; }
         
         input {
-            width: 100%; padding: 15px 20px; border-radius: 25px;
-            border: 1px solid #ccc; box-sizing: border-box; font-size: 16px; outline: none;
+            width: 100%; padding: 18px 25px; border-radius: 30px;
+            border: 1px solid #ccc; box-sizing: border-box; font-size: 18px; outline: none;
             background: white; font-family: 'Open Sans', sans-serif; margin-bottom: 20px;
+            text-align: center;
         }
 
         .btn-principal {
@@ -49,18 +58,27 @@
             cursor: pointer; font-weight: 700; transition: 0.3s;
         }
 
-        /* Píldoras con nombres completos */
-        .pills-nav { display: flex; justify-content: center; gap: 10px; margin-top: 25px; flex-wrap: wrap; }
-        .pill { 
-            background: #e0e0e0; border: none; padding: 10px 18px; border-radius: 20px; 
-            font-size: 12px; cursor: pointer; transition: 0.3s; font-weight: 600; color: #555; 
-            text-transform: uppercase; letter-spacing: 0.5px;
+        /* Texto explicativo en gris */
+        .instrucciones-plantillas {
+            color: #888;
+            font-size: 13px;
+            text-align: center;
+            margin: 30px auto 15px auto;
+            max-width: 80%;
+            line-height: 1.5;
         }
-        .pill.active { background: white; color: black; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
 
-        .symbols-container { background: white; border-radius: 20px; padding: 20px; margin-top: 15px; border: 1px solid #ddd; }
+        /* Píldoras con bordes muy redondeados */
+        .pills-nav { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+        .pill { 
+            background: #e0e0e0; border: none; padding: 12px 24px; border-radius: 50px; 
+            font-size: 13px; cursor: pointer; transition: 0.3s; font-weight: 600; color: #555;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        }
+        .pill.active { background: white; color: black; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+        .symbols-container { background: white; border-radius: 30px; padding: 25px; border: 1px solid #ddd; }
         
-        /* Ajuste de cuadrícula para que los textos largos quepan */
         .symbols-grid { 
             display: grid; 
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
@@ -68,14 +86,14 @@
         }
 
         .sym-btn { 
-            background: white; border: 1px solid #efefef; padding: 15px; border-radius: 15px; 
+            background: white; border: 1px solid #efefef; padding: 18px; border-radius: 20px; 
             text-align: center; cursor: pointer; transition: 0.2s; display: flex; 
             flex-direction: column; align-items: center; justify-content: center;
-            min-height: 100px;
+            min-height: 110px;
         }
-        .sym-btn:hover { border-color: #000; background: #fafafa; }
-        .sym-btn span { font-size: 15px; font-weight: 600; margin-bottom: 8px; color: #000; word-break: break-all; }
-        .sym-btn small { font-size: 10px; text-transform: uppercase; color: #888; font-weight: 700; }
+        .sym-btn:hover { border-color: #000; transform: translateY(-2px); }
+        .sym-btn span { font-size: 16px; font-weight: 600; margin-bottom: 8px; color: #000; word-break: break-all; }
+        .sym-btn small { font-size: 10px; text-transform: uppercase; color: #999; font-weight: 700; letter-spacing: 0.5px; }
     </style>
 </head>
 <body>
@@ -83,6 +101,7 @@
 <div class="calculadora">
     <div class="header-section">
         <h1>Fracciones Parciales</h1>
+        <div class="main-subtitle">√(Raiz) Cuadrada²</div>
     </div>
 
     <div id="preview-container">
@@ -96,11 +115,15 @@
 
     <div id="resultado">Esperando datos...</div>
 
+    <p class="instrucciones-plantillas">
+        Para agilizar la escritura de tu problema, selecciona una de las siguientes plantillas y simplemente sustituye los valores de las constantes (a, b, c, k) por los números de tu ejercicio original.
+    </p>
+
     <div class="pills-nav">
-        <button class="pill active" onclick="showCategory('lineales_simples', this)">Factor lineal simple</button>
-        <button class="pill" onclick="showCategory('lineales_repetidos', this)">Factor lineal repetido</button>
-        <button class="pill" onclick="showCategory('cuadraticos_simples', this)">Factor cuadratico simple</button>
-        <button class="pill" onclick="showCategory('cuadraticos_repetidos', this)">Factor cuadratico repetido</button>
+        <button class="pill active" onclick="showCategory('lineales_simples', this)">CASO 1: Factor lineal simple</button>
+        <button class="pill" onclick="showCategory('lineales_repetidos', this)">CASO 2: Factor lineal repetido</button>
+        <button class="pill" onclick="showCategory('cuadraticos_simples', this)">CASO 3: Factor cuadratico simple</button>
+        <button class="pill" onclick="showCategory('cuadraticos_repetidos', this)">CASO 4: Factor cuadratico repetido</button>
     </div>
 
     <div class="symbols-container">
@@ -113,23 +136,20 @@ const APP_ID = "A947G495PV";
 
 const categorias = {
     lineales_simples: [
-        { s: '1/((x+a)*(x+b))', t: 'Dos factores: 1/(x+a)(x+b)' },
-        { s: '(x+k)/((x+a)*(x+b))', t: 'Numerador lineal: (x+k)/den' },
+        { s: '1/((x+a)*(x+b))', t: '1/(x+a)(x+b)' },
+        { s: '(x+k)/((x+a)*(x+b))', t: 'Numerador lineal' },
         { s: '1/((x+a)*(x+b)*(x+c))', t: 'Tres factores simples' },
-        { s: '(x^2+k)/((x+a)*(x+b)*(x+c))', t: 'Numerador cuadrático' },
         { s: '1/(x^2-a^2)', t: 'Diferencia de cuadrados' }
     ],
     lineales_repetidos: [
         { s: '1/(x+a)^2', t: 'Factor al cuadrado' },
         { s: '1/(x+a)^3', t: 'Factor al cubo' },
         { s: '1/(x*(x+a)^2)', t: 'Simple + Repetido' },
-        { s: '(x+k)/(x*(x+a)^2)', t: 'Lineal / Simple + Repetido' },
-        { s: '1/((x+a)^2*(x+b)^2)', t: 'Dos repetidos al cuadrado' }
+        { s: '1/((x+a)^2*(x+b)^2)', t: 'Dos repetidos' }
     ],
     cuadraticos_simples: [
         { s: '1/(x^2+a^2)', t: 'Cuadrático irreducible' },
         { s: '1/(x*(x^2+a^2))', t: 'Lineal + Cuadrático' },
-        { s: '(Ax+B)/((x+a)*(x^2+b^2))', t: 'Numerador complejo / Mixto' },
         { s: '1/((x^2+a^2)*(x^2+b^2))', t: 'Dos cuadráticos distintos' },
         { s: '1/(x^2+x+1)', t: 'Trinomio irreducible' }
     ],
@@ -137,8 +157,7 @@ const categorias = {
         { s: '1/(x^2+a^2)^2', t: 'Cuadrático repetido ^2' },
         { s: '1/(x^2+a^2)^3', t: 'Cuadrático repetido ^3' },
         { s: 'x/(x^2+a^2)^2', t: 'Numerador x / Cuad. repetido' },
-        { s: '1/(x*(x^2+a^2)^2)', t: 'Lineal + Cuad. repetido' },
-        { s: '(x^2+1)/(x^2+a^2)^2', t: 'Cuadrático / Cuad. repetido' }
+        { s: '1/(x*(x^2+a^2)^2)', t: 'Lineal + Cuad. repetido' }
     ]
 };
 
@@ -166,7 +185,7 @@ function actualizarPreview() {
     if(!input) return;
     try {
         preview.innerHTML = `$$ ${nerdamer(input).toTeX()} $$`;
-        MathJax.typesetPromise([preview]);
+        if (window.MathJax) MathJax.typesetPromise([preview]);
     } catch(e) {}
 }
 
@@ -188,23 +207,22 @@ async function resolver() {
         const texto = await response.text();
 
         if (response.ok && !texto.includes("Error")) {
-            const latex = nerdamer(texto.replace(/ /g, '')).toTeX();
+            const cleanText = texto.replace(/ /g, '');
+            const latex = nerdamer(cleanText).toTeX();
             out.innerHTML = `$$ ${latex} $$`;
         } else {
-            out.innerHTML = "<span style='color:red'>Error en la expresión.</span>";
+            out.innerHTML = "<span style='color:red'>Error en la expresión o sin descomposición.</span>";
         }
     } catch (e) {
-        out.innerHTML = "<span style='color:red'>Error de conexión.</span>";
+        out.innerHTML = "<span style='color:red'>Error de conexión con el servidor.</span>";
     } finally {
         btn.disabled = false;
-        MathJax.typesetPromise([out]);
+        if (window.MathJax) MathJax.typesetPromise([out]);
     }
 }
 
-// Corregido para que inicie en la categoría correcta
 window.onload = () => {
-    const primeraPildora = document.querySelector('.pill');
-    showCategory('lineales_simples', primeraPildora);
+    showCategory('lineales_simples', document.querySelector('.pill'));
 };
 </script>
 
